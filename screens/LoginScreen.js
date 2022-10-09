@@ -8,16 +8,20 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ImageBackground,
+  Button,
+  Alert,
 } from "react-native";
-import { TextInput, Button } from "react-native-paper";
+import { TextInput } from "react-native-paper";
 // import auth from "@react-native-firebase/auth";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../auth/Firebase";
+import { auth } from "../firebase/firebaseAuth";
 
 export default function SignupScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const image = {
     // uri: "https://cdn.pixabay.com/photo/2014/01/21/16/01/backdrop-249158_960_720.jpg",
     uri: "https://cdn.pixabay.com/photo/2021/04/23/17/18/triangles-6202188_960_720.jpg",
@@ -27,37 +31,44 @@ export default function SignupScreen({ navigation }) {
     return <ActivityIndicator size="large" color="#00ff00" />;
   }
   const userLogin = async () => {
-    setLoading(true);
     if (!email || !password) {
       alert("please add all the field");
       return;
     }
-
+    setLoading(true);
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         // Signed in
         const user = userCredential.user;
-        console.log(user);
-        setMessage("Signed in Successfully!");
-        navigation.navigate("HomeScreen")
+        // console.log(user);
+        // setMessage("Signed in Successfully!");
+        navigation.navigate("HomeScreen");
+        setLoading(false);
       })
       .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
+        setLoading(false);
+        setErrorMessage(errorCode.split("/")[1]);
       });
   };
+  
   return (
     <ImageBackground source={image} resizeMode="cover" style={styles.image}>
       <KeyboardAvoidingView behavior="position">
         <View style={styles.box1}>
           <Text style={styles.text}>Romix</Text>
-          {/* <Image style={styles.img} source={require("../assets/love-icon.png")} /> */}
+          <Image
+            style={styles.img}
+            source={require("../assets/love-icon.png")}
+          />
         </View>
         <View style={styles.box2}>
           <TextInput
             label="Email"
             value={email}
             onChangeText={(text) => setEmail(text)}
+            // type="flat"
             mode="outlined"
           />
           <TextInput
@@ -67,18 +78,32 @@ export default function SignupScreen({ navigation }) {
             onChangeText={(text) => setPassword(text)}
             secureTextEntry
           />
-          <Button
-            mode="contained"
-            onPress={() => userLogin()}
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>Sign In</Text>
-          </Button>
+
+          {!email || !password ? (
+            <Button
+              title="Sign In"
+              onPress={() => Alert.alert("Simple Button pressed")}
+              disabled
+            />
+          ) : (
+            <Button
+              title="Sign In"
+              color="#10FFB4"
+              // onPress={() => Alert.alert("Simple Button pressed")}
+              onPress={() => userLogin()}
+            />
+          )}
+
           <TouchableOpacity onPress={() => navigation.navigate("signup")}>
             <Text style={{ textAlign: "center", color: "white" }}>
               Don't have an account ?
             </Text>
           </TouchableOpacity>
+        </View>
+        <View>
+          <Text style={{ textAlign: "center", color: "red" }}>
+            {errorMessage}
+          </Text>
         </View>
       </KeyboardAvoidingView>
     </ImageBackground>
@@ -99,8 +124,7 @@ const styles = StyleSheet.create({
     color: "black",
   },
   button: {
-    color: "red",
-    backgroundColor: "#10FFB4",
+    color: "black",
   },
   text: {
     color: "white",

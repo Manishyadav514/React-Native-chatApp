@@ -8,6 +8,7 @@ import {
   Text,
   useColorScheme,
   View,
+  Button,
 } from "react-native";
 // import 'react-native-gesture-handler';
 import SignupScreen from "./screens/SignupScreen";
@@ -20,45 +21,45 @@ import HomeScreen from "./screens/HomeScreen";
 // import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import ChatScreen from "./screens/ChatScreen";
 // import firestore from '@react-native-firebase/firestore'
-import {auth} from "./auth/Firebase"
+import { auth } from "./firebase/firebaseAuth";
 import AccountScreen from "./screens/AccountScreen";
-
+import { onAuthStateChanged } from "firebase/auth";
 const theme = {
   ...DefaultTheme,
   roundness: 2,
   colors: {
     ...DefaultTheme.colors,
-    primary: "green",
+    primary: "black",
   },
 };
 
 const Stack = createStackNavigator();
 
 const Navigation = () => {
-  const [user, setuser] = useState("");
-  
-  useEffect(()=>{
-    
-  //  const unregister =  auth().onAuthStateChanged(userExist=>{
-  //     if(userExist){
+  const [user, setUser] = useState("");
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      setUser(user);
+      // console.log("user", user);
+      const uid = user.uid;
+    } else {
+      setUser("");
+    }
+  });
 
-  //       firestore().collection('users')
-  //       .doc(userExist.uid)
-  //       .update({
-  //         status:"online"
-  //       })
-  //       setuser(userExist)
-
-  //     }
-
-  //     else setuser("")
-  //   })
-
-  //   return ()=>{
-  //     unregister()
-  //   }
-
-  },[])
+  // const handleSignOut = useEffect(() => {
+  // onAuthStateChanged(auth, (user) => {
+  //   if (user) {
+  //     firestore().collection("users").doc(user.uid).update({
+  //       status: "online",
+  //     });
+  //     setuser(user);
+  //   } else setuser("");
+  // });
+  // return () => {
+  //   unregister();
+  // };
+  // }, []);
 
   return (
     <NavigationContainer>
@@ -67,39 +68,27 @@ const Navigation = () => {
           headerTintColor: "green",
         }}
       >
-        {user ? (
+        {!user ? (
           <>
-                      <Stack.Screen
-              name="home"
-              component={HomeScreen}
+            <Stack.Screen
+              name="login"
+              component={LoginScreen}
               options={{ headerShown: false }}
             />
-            {/* <Stack.Screen
-                          // name="signup"
-                          // component={HomeScreen}
-                          // options={{ headerShown: false }}
-              // options={{
-                // headerRight:()=><MaterialIcons
-                // name: "account-circle",
-                // size={34}
-                // color="green"
-                // style={{marginRight:10}}
-                // onPress={()=>{
-                //   firestore().collection('users')
-                //   .doc(user.uid)
-                //   .update({
-                //     status:firestore.FieldValue.serverTimestamp()
-                //   }).then(()=>{
-                //        auth().signOut()
-                //   })
-                // }}
-                // />,
-                // title: "Romix Chat Section",
-              // }}
-            >
-              {(props) => <HomeScreen {...props} user={user} />}
-            </Stack.Screen>
             <Stack.Screen
+              name="signup"
+              component={SignupScreen}
+              options={{ headerShown: false }}
+            />
+          </>
+        ) : (
+          <>
+            <Stack.Screen
+              name="home"
+              component={HomeScreen}
+              options={{ headerShown: true }}
+            />
+            {/* <Stack.Screen
               name="chat"
               options={({ route }) => ({
                 title: (
@@ -115,19 +104,6 @@ const Navigation = () => {
             {/* <Stack.Screen name="account">
               {(props) => <AccountScreen {...props} user={user} />}
             </Stack.Screen> */}
-          </>
-        ) : (
-          <>
-            <Stack.Screen
-              name="login"
-              component={LoginScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="signup"
-              component={SignupScreen}
-              options={{ headerShown: false }}
-            />
           </>
         )}
       </Stack.Navigator>

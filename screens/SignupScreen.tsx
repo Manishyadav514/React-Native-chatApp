@@ -5,27 +5,27 @@ import {
   ImageBackground,
   Image,
   StyleSheet,
+  Button,
   KeyboardAvoidingView,
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { TextInput, Button } from "react-native-paper";
+import { TextInput,  } from "react-native-paper";
 // import { launchImageLibrary } from "react-native-image-picker";
 // import storage from "@react-native-firebase/storage";
 // import auth from "@react-native-firebase/auth";
 // import firestore from "@react-native-firebase/firestore";
-import { auth } from "../auth/Firebase";
+import { auth, handleSignUp } from "../firebase/firebaseAuth";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 
 export default function SignupScreen({ navigation }: any) {
-  const emailRefSignIn = useRef();
-  const passwordRefSignIn = useRef();
+  // const emailRefSignIn = useRef();
+  // const passwordRefSignIn = useRef();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  console.log(emailRefSignIn, passwordRefSignIn, email, password);
   const [name, setName] = useState("");
   const [message, setMessage] = useState("...");
-
+  const [showNext, setShowNext] = useState(false);
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const image1 = {
@@ -34,58 +34,36 @@ export default function SignupScreen({ navigation }: any) {
     // uri: "https://cdn.pixabay.com/photo/2021/04/23/17/18/triangles-6202188_960_720.jpg",
     // uri: "https://img.freepik.com/free-psd/3d-geometric-black-scene-with-cube-podium-editable-light-product-placement_167960-36.jpg?w=360&t=st=1664905269~exp=1664905869~hmac=99e221f86b892d2596f5847d91555423bfa652685739d8bbad58be7431a30b0b",
   };
+
   if (loading) {
     return <ActivityIndicator size="large" color="#00ff00" />;
   }
-  // const userSignup = async () => {
-  //   setLoading(true);
-  //   if (!email || !password || !name) {
-  //     alert("please add all the field");
-  //     return;
-  //   }
-  //   try {
-  //     const result = await auth().createUserWithEmailAndPassword(
-  //       email,
-  //       password
-  //     );
-  //     firestore().collection("users").doc(result.user.uid).set({
-  //       name: name,
-  //       email: result.user.email,
-  //       uid: result.user.uid,
-  //       pic: image,
-  //       status: "online",
-  //     });
-  //     setLoading(false);
-  //   } catch (err) {
-  //     alert("something went wrong");
-  // //   }
-  // // };
+
   function alert(argument: string) {
     throw new Error(argument);
   }
-  console.log("hello");
-  const SignUp = async () => {
-    createUserWithEmailAndPassword(
-      // emailRef.current.value,
-      // passwordRef.current.value
-      auth,
-      email,
-      password
-    )
+
+  const userSignUp =()=> {
+    setLoading(true);
+    // let response = handleSignUp(email, password);
+    // setMessage(response);
+    createUserWithEmailAndPassword(auth, email, password)
       .then(function () {
+        setLoading(false);
         setMessage("User Created!");
-        navigation.navigate("signin")
+        setShowNext(true);
+        // navigation.navigate("signin");
       })
-      .catch(function ({ error }: any) {
-        var errorCode = error.code;
-        var errorMessage = error.message;
+      .catch((error) => {
+        console.log(error);
+        setLoading(false);
+        var errorCode = error?.code;
+        var errorMessage = error?.message;
         console.log(errorCode);
         console.log(errorMessage);
-        setMessage(errorCode.split("/")[1]);
+        setMessage(errorCode?.split("/")[1]);
       });
   };
-
-  // const {signup} = useAuth()
 
   // const pickImageAndUpload = () => {const [message, setMessage] = useState("Response");
   //   launchImageLibrary({ quality: 0.5 }, (fileobj) => {
@@ -115,57 +93,78 @@ export default function SignupScreen({ navigation }: any) {
   return (
     <ImageBackground source={image1} resizeMode="cover" style={styles.image}>
       <KeyboardAvoidingView behavior="position">
-        <View style={styles.box1}>
-          <Text style={styles.text}>Romix</Text>
-          <Image
-            style={styles.img}
-            source={require("../assets/love-icon.png")}
-          />
-        </View>
-        <View style={styles.box2}>
-          <TextInput
-            label="Name"
-            value={name}
-            onChangeText={(text) => setName(text)}
-            // ref={emailRefSignIn}
-            mode="outlined"
-            style={styles.input}
-          />
-          <TextInput
-            label="Email"
-            value={email}
-            onChangeText={(text) => setEmail(text)}
-            // ref={passwordRefSignIn}
-            mode="outlined"
-          />
-          <TextInput
-            label="password"
-            mode="outlined"
-            value={password}
-            onChangeText={(text) => setPassword(text)}
-            secureTextEntry
-          />
-          <Text style={{ color: "red" }}></Text>
-          <Button
-            mode="contained"
-            // disabled={image?false:true}
-            // onPress={() => userSignup()}
-            onPress={() => SignUp()}
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>Signup</Text>
-          </Button>
-        </View>
-        <View>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={{ textAlign: "center", color: "white" }}>
-              Already have an account ?
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <View>
-          <Text style={{ textAlign: "center", color: "green" }}>{message}</Text>
-        </View>
+        {!showNext ? (
+          <>
+            <View style={styles.box1}>
+              <Text style={styles.text}>Romix</Text>
+              <Image
+                style={styles.img}
+                source={require("../assets/love-icon.png")}
+              />
+            </View>
+            <View style={styles.box2}>
+              <TextInput
+                label="Name"
+                value={name}
+                onChangeText={(text) => setName(text)}
+                // ref={emailRefSignIn}
+                mode="outlined"
+                style={styles.input}
+              />
+              <TextInput
+                label="Email"
+                value={email}
+                onChangeText={(text) => setEmail(text)}
+                // ref={passwordRefSignIn}
+                mode="outlined"
+              />
+              <TextInput
+                label="password"
+                mode="outlined"
+                value={password}
+                onChangeText={(text) => setPassword(text)}
+                secureTextEntry
+              />
+              <Text style={{ color: "red" }}></Text>
+
+              {!email || !password || !name ? (
+            <Button
+              title="Register"
+              disabled
+            />
+          ) : (
+            <Button
+              title="Register"
+              color="#10FFB4"
+              onPress={() => userSignUp()}
+            />
+          )}
+
+              {/* <Button
+                mode="contained"
+                onPress={() => userSignUp()}
+                style={styles.button}
+              >
+                <Text style={styles.buttonText}>Signup</Text>
+              </Button> */}
+            </View>
+            <View>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Text style={{ textAlign: "center", color: "white" }}>
+                  Already have an account ?
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View>
+                <Text style={{ textAlign: "center", color: "red" }}>
+                  {message}
+                </Text>
+            </View>
+          </>
+        ) : (
+          <></>
+        )}
+
       </KeyboardAvoidingView>
     </ImageBackground>
   );
